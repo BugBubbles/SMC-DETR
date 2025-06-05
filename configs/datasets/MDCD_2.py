@@ -121,14 +121,14 @@ val_pipeline = test_pipeline
 metainfo = dict(
     classes=('crater')
     )
-data_root = '/home/temp/CraterDetect/'
+data_root = '/home/temp/CraterDetect/CraterDetect/'
 dataset_type = 'CocoDataset'
 val_dataloader = dict(
     batch_size=4,
     dataset=dict(
-        ann_file='annotations/val4.json',
+        ann_file='annotations/MDCD/val2.json',
         backend_args=None,
-        data_prefix=dict(img='images/'),
+        data_prefix=dict(img='MDCD/'),
         data_root=data_root,
         metainfo=metainfo,
         pipeline=val_pipeline,
@@ -139,7 +139,7 @@ val_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 val_evaluator = dict(
-    ann_file=data_root + 'annotations/val4.json',
+    ann_file=data_root + 'annotations/MDCD/val2.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
@@ -148,9 +148,9 @@ val_evaluator = dict(
 test_dataloader = dict(
     batch_size=4,
     dataset=dict(
-        ann_file='annotations/val4.json',
+        ann_file='annotations/MDCD/val2.json',
         backend_args=None,
-        data_prefix=dict(img='images/'),
+        data_prefix=dict(img='MDCD/'),
         data_root=data_root,
         metainfo=metainfo,
         pipeline=test_pipeline,
@@ -161,7 +161,7 @@ test_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 test_evaluator = dict(
-    ann_file=data_root + 'annotations/val4.json',
+    ann_file=data_root + 'annotations/MDCD/val2.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
@@ -172,9 +172,9 @@ train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     batch_size=4,
     dataset=dict(
-        ann_file='annotations/val4.json',
+        ann_file='annotations/MDCD/train2.json',
         backend_args=None,
-        data_prefix=dict(img='images/'),
+        data_prefix=dict(img='MDCD/'),
         data_root=data_root,
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         metainfo=metainfo,

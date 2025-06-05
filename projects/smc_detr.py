@@ -197,6 +197,8 @@ class SMC_DETR(DINO):
         topk_index,
         spatial_shapes,
         level_start_index,
+        iou_threshold=0.3,
+        ratio=1,
     ):
         batch_size, num_topk = topk_scores.shape
         if torchvision._is_tracing():
@@ -227,15 +229,15 @@ class SMC_DETR(DINO):
 
         # perform batched_nms
         indices = torchvision.ops.batched_nms(
-            coordinates, topk_scores, idxs, self.iou_threshold
+            coordinates, topk_scores, idxs, iou_threshold
         )
 
         # stack valid index
         results_index = []
         if torchvision._is_tracing():
-            min_num = torch.tensor(self.num_queries)
+            min_num = torch.tensor(self.num_queries * ratio)
         else:
-            min_num = self.num_queries
+            min_num = self.num_queries * ratio
         # get indices in each image
         for i in range(batch_size):
             topk_index_per_image = topk_index[indices[image_idx[indices] == i]]
@@ -245,7 +247,7 @@ class SMC_DETR(DINO):
                 min_num = min(topk_index_per_image.shape[0], min_num)
             results_index.append(topk_index_per_image)
         return torch.stack([index[:min_num] for index in results_index])
-
+    
     @staticmethod
     def fast_repeat_interleave(input, repeats):
         """torch.Tensor.repeat_interleave is slow for one-dimension input for unknown reasons.

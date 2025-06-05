@@ -77,7 +77,7 @@ model = dict(
         num_feats=128, normalize=True, offset=0.0, temperature=20  # -0.5 for DeformDETR
     ),  # 10000 for DeformDETR
     bbox_head=dict(
-        type="DsDETRHeadWithNMS",
+        type="DS_SMC_DETRHead",
         num_classes=1,
         sync_cls_avg_factor=True,
         loss_cls=dict(
@@ -108,4 +108,4 @@ model = dict(
 )  # 100 for DeformDETR
 
 
-work_dir = "../logs/smc-detr_ds4sr50_8xb2-200e_ln"
+work_dir = "./logs/smc-detr_ds4sr50_8xb2-200e_ln"

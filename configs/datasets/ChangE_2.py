@@ -1,7 +1,6 @@
 backend_args = None
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
-
 test_pipeline = [
     dict(backend_args=None, type='LoadImageFromFile'),
     dict(keep_ratio=True, scale=(
@@ -122,47 +121,47 @@ val_pipeline = test_pipeline
 metainfo = dict(
     classes=('crater')
     )
-data_root = '/home/temp/CraterDetect/'
+data_root = '/home/temp/CraterDetect/CraterDetect/'
 dataset_type = 'CocoDataset'
 val_dataloader = dict(
-    batch_size=2,
+    batch_size=4,
     dataset=dict(
-        ann_file='val/CraterDANet.json',
+        ann_file='annotations/ChangE/val2.json',
         backend_args=None,
-        data_prefix=dict(img='val/CraterDANet'),
+        data_prefix=dict(img='ChangE/'),
         data_root=data_root,
         metainfo=metainfo,
         pipeline=val_pipeline,
         test_mode=True,
         type='CocoDataset'),
     drop_last=False,
-    num_workers=2,
+    num_workers=4,
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 val_evaluator = dict(
-    ann_file=data_root + 'val/CraterDANet.json',
+    ann_file=data_root + 'annotations/ChangE/val2.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
-    type='CocoMetric')
+    type='CraterCocoMetric')
 
 test_dataloader = dict(
-    batch_size=2,
+    batch_size=4,
     dataset=dict(
-        ann_file='test/Bo.json',
+        ann_file='annotations/ChangE/val2.json',
         backend_args=None,
-        data_prefix=dict(img='test/Bo'),
+        data_prefix=dict(img='ChangE/'),
         data_root=data_root,
         metainfo=metainfo,
         pipeline=test_pipeline,
         test_mode=True,
         type='CocoDataset'),
     drop_last=False,
-    num_workers=2,
+    num_workers=4,
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 test_evaluator = dict(
-    ann_file=data_root + 'test/Bo.json',
+    ann_file=data_root + 'annotations/ChangE/val2.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
@@ -171,21 +170,17 @@ test_evaluator = dict(
 
 train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
-    batch_size=2,
+    batch_size=4,
     dataset=dict(
-        ann_file='train/CraterDANet.json',
+        ann_file='annotations/ChangE/train2.json',
         backend_args=None,
-        data_prefix=dict(img='train/CraterDANet'),
+        data_prefix=dict(img='ChangE/'),
         data_root=data_root,
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         metainfo=metainfo,
         pipeline=train_pipeline,
         type='CocoDataset'),
-    num_workers=2,
+    num_workers=4,
     persistent_workers=True,
     sampler=dict(shuffle=True, type='DefaultSampler'))
-
-custom_hooks = [
-  dict(type='ValTestHook', loop=test_cfg, dataloader=test_dataloader, evaluator=test_evaluator),
-]
 
