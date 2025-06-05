@@ -7,8 +7,6 @@ import torch.nn.functional as F
 import copy
 from mmcv.cnn.bricks.transformer import MultiScaleDeformableAttention, FFN
 from mmengine.model import xavier_init
-from .nms_dino import DINOWithNMSAlign
-from mmdet.registry import MODELS
 from torch import nn, Tensor
 from mmengine.model import ModuleList
 from mmcv.cnn import build_norm_layer
@@ -108,7 +106,7 @@ def multi_scale_deformable_attn_pytorch(
     return output.transpose(1, 2).contiguous()
 
 
-class MultiScaleKVDeformableAttention(MultiScaleDeformableAttention):
+class MultiScaleSEDAAttention(MultiScaleDeformableAttention):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.key_proj = copy.deepcopy(self.value_proj)
@@ -242,8 +240,6 @@ class MultiScaleKVDeformableAttention(MultiScaleDeformableAttention):
 
 from mmdet.models import (
     DeformableDetrTransformerEncoder,
-    DinoTransformerDecoder,
-    SinePositionalEncoding,
     DeformableDetrTransformerEncoderLayer,
 )
 
@@ -253,12 +249,12 @@ except Exception:
     checkpoint_wrapper = None
 
 
-class KVDeformableDetrTransformerEncoderLayer(DeformableDetrTransformerEncoderLayer):
+class SEDADetrTransformerEncoderLayer(DeformableDetrTransformerEncoderLayer):
     """Encoder layer of Deformable DETR."""
 
     def _init_layers(self) -> None:
         """Initialize self_attn, ffn, and norms."""
-        self.self_attn = MultiScaleKVDeformableAttention(**self.self_attn_cfg)
+        self.self_attn = MultiScaleSEDAAttention(**self.self_attn_cfg)
         self.embed_dims = self.self_attn.embed_dims
         self.ffn = FFN(**self.ffn_cfg)
         norms_list = [
@@ -267,14 +263,14 @@ class KVDeformableDetrTransformerEncoderLayer(DeformableDetrTransformerEncoderLa
         self.norms = ModuleList(norms_list)
 
 
-class KVDeformableDetrTransformerEncoder(DeformableDetrTransformerEncoder):
+class SEDADetrTransformerEncoder(DeformableDetrTransformerEncoder):
     """Transformer encoder of Deformable DETR."""
 
     def _init_layers(self) -> None:
         """Initialize encoder layers."""
         self.layers = ModuleList(
             [
-                KVDeformableDetrTransformerEncoderLayer(**self.layer_cfg)
+                SEDADetrTransformerEncoderLayer(**self.layer_cfg)
                 for _ in range(self.num_layers)
             ]
         )
@@ -290,37 +286,3 @@ class KVDeformableDetrTransformerEncoder(DeformableDetrTransformerEncoder):
                 self.layers[i] = checkpoint_wrapper(self.layers[i])
 
         self.embed_dims = self.layers[0].embed_dims
-
-
-@MODELS.register_module()
-class DINOWithNMSAlignWithKV(DINOWithNMSAlign):
-    """DINO with NMS for Key Value Deformable Attention.
-
-    Args:
-        *args: Arguments for DINOWithNMS.
-        **kwargs: Keyword arguments for DINOWithNMS.
-    """
-
-    def _init_layers(self) -> None:
-        """Initialize layers except for backbone, neck and bbox_head."""
-        self.positional_encoding = SinePositionalEncoding(**self.positional_encoding)
-        self.encoder = KVDeformableDetrTransformerEncoder(**self.encoder)
-        self.decoder = DinoTransformerDecoder(**self.decoder)
-        self.embed_dims = self.encoder.embed_dims
-        self.query_embedding = nn.Embedding(self.num_queries, self.embed_dims)
-        # NOTE In DINO, the query_embedding only contains content
-        # queries, while in Deformable DETR, the query_embedding
-        # contains both content and spatial queries, and in DETR,
-        # it only contains spatial queries.
-
-        num_feats = self.positional_encoding.num_feats
-        assert num_feats * 2 == self.embed_dims, (
-            f"embed_dims should be exactly 2 times of num_feats. "
-            f"Found {self.embed_dims} and {num_feats}."
-        )
-
-        self.level_embed = nn.Parameter(
-            Tensor(self.num_feature_levels, self.embed_dims)
-        )
-        self.memory_trans_fc = nn.Linear(self.embed_dims, self.embed_dims)
-        self.memory_trans_norm = nn.LayerNorm(self.embed_dims)

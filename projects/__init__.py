@@ -1,4 +1,2 @@
-from .demo import DEMO
-from .head import DEMOHead, DEMOHead_modified
-from .demov2 import DEMO_nobackbone
-from .ops import *
+from .smc_detr import SMC_DETR, SMC_DETRHead
+from .ds_smc_detr import DS_SMC_DETRHead, DS_SMC_DETR

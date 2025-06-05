@@ -1,18 +1,16 @@
 _base_ = [
-    "../../../configs/datasets/LRONAC_1.py",
-    "../../../configs/schedular/200epochs.py",
-    "../../../configs/default_runtime.py",
+    "../../datasets/MDCD_1.py",
+    "../../schedular/200epochs.py",
+    "../../default_runtime.py",
 ]
 auto_scale_lr = dict(base_batch_size=16)
 custom_imports = dict(
-    allow_failed_imports=False,
-    imports=[
-        "mmlab.Demo_dense.modules",
-        "mmlab.modules",
-    ],
-)
+    allow_failed_imports=False, imports=[
+        'projects',
+    ])
+
 model = dict(
-    type="DsDINOWithNMSAlignWithKV",
+    type="DS_SMC_DETR",
     num_queries=900,  # num_matching_queries
     dense_topk_ratio=1.5,
     with_box_refine=True,
@@ -79,7 +77,7 @@ model = dict(
         num_feats=128, normalize=True, offset=0.0, temperature=20  # -0.5 for DeformDETR
     ),  # 10000 for DeformDETR
     bbox_head=dict(
-        type="DsDETRHeadWithNMS",
+        type="DDQDETRHeadWithNMS",
         num_classes=1,
         sync_cls_avg_factor=True,
         loss_cls=dict(
@@ -87,7 +85,8 @@ model = dict(
         ),  # 2.0 in DeformDETR
         loss_bbox=dict(type="L1Loss", loss_weight=5.0),
         loss_iou=dict(type="GIoULoss", loss_weight=2.0),
-        loss_rank=dict(type='RankLoss', loss_weight=1),
+        loss_rank=dict(type='RankLoss', loss_weight=1.0),
+        loss_dense_rank=dict(type='RankLoss', loss_weight=1.0)
     ),
     dn_cfg=dict(  # TODO: Move to model.train_cfg ?
         label_noise_scale=0.5,
@@ -110,4 +109,4 @@ model = dict(
 )  # 100 for DeformDETR
 
 
-work_dir = "../logs/ds_dino_ae4sr50_8xb2-200e_ln"
+work_dir = "../logs/smc-detr_ds4sr50_8xb2-200e_mdcd"

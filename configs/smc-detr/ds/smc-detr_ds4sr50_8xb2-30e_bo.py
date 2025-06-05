@@ -1,18 +1,16 @@
 _base_ = [
-    "../../../configs/datasets/MDCD_1.py",
-    "../../../configs/schedular/200epochs.py",
-    "../../../configs/default_runtime.py",
+    "../../datasets/Bo.py",
+    "../../schedular/200epochs.py",
+    "../../default_runtime.py",
 ]
 auto_scale_lr = dict(base_batch_size=16)
 custom_imports = dict(
-    allow_failed_imports=False,
-    imports=[
-        "mmlab.Demo_dense.modules",
-        "mmlab.modules",
-    ],
-)
+    allow_failed_imports=False, imports=[
+        'projects',
+    ])
+
 model = dict(
-    type="DDQDINOWithNMSAlignWithKV",
+    type="DS_SMC_DETR",
     num_queries=900,  # num_matching_queries
     dense_topk_ratio=1.5,
     with_box_refine=True,
@@ -111,4 +109,4 @@ model = dict(
 )  # 100 for DeformDETR
 
 
-work_dir = "../logs/ddq_dino_nms_ae4sr50_8xb2-200e_mdcd"
+work_dir = "../bo_logs/smc-detr_ds4sr50_8xb2-200e"
