@@ -1,0 +1,113 @@
+_base_ = [
+    "../../../configs/datasets/LRONAC_1.py",
+    "../../../configs/schedular/200epochs.py",
+    "../../../configs/default_runtime.py",
+]
+auto_scale_lr = dict(base_batch_size=16)
+custom_imports = dict(
+    allow_failed_imports=False,
+    imports=[
+        "mmlab.Demo_dense.modules",
+        "mmlab.modules",
+    ],
+)
+model = dict(
+    type="DsDINOWithNMSAlignWithKV",
+    num_queries=900,  # num_matching_queries
+    dense_topk_ratio=1.5,
+    with_box_refine=True,
+    as_two_stage=True,
+    data_preprocessor=dict(
+        type="DetDataPreprocessor",
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        bgr_to_rgb=True,
+        pad_size_divisor=1,
+    ),
+    backbone=dict(
+        type="ResNet",
+        depth=50,
+        num_stages=4,
+        out_indices=(1, 2, 3),
+        frozen_stages=1,
+        norm_cfg=dict(type="BN", requires_grad=False),
+        norm_eval=True,
+        style="pytorch",
+        init_cfg=dict(type="Pretrained", checkpoint="torchvision://resnet50"),
+    ),
+    neck=dict(
+        type="ChannelMapper",
+        in_channels=[512, 1024, 2048],
+        kernel_size=1,
+        out_channels=256,
+        act_cfg=None,
+        norm_cfg=dict(type="GN", num_groups=32),
+        num_outs=4,
+    ),
+    encoder=dict(
+        num_layers=6,
+        layer_cfg=dict(
+            self_attn_cfg=dict(
+                embed_dims=256, num_levels=4, dropout=0.0
+            ),  # 0.1 for DeformDETR
+            ffn_cfg=dict(
+                embed_dims=256,
+                feedforward_channels=2048,  # 1024 for DeformDETR
+                ffn_drop=0.0,
+            ),
+        ),
+    ),  # 0.1 for DeformDETR
+    decoder=dict(
+        num_layers=6,
+        return_intermediate=True,
+        layer_cfg=dict(
+            self_attn_cfg=dict(
+                embed_dims=256, num_heads=8, dropout=0.0
+            ),  # 0.1 for DeformDETR
+            cross_attn_cfg=dict(
+                embed_dims=256, num_levels=4, dropout=0.0
+            ),  # 0.1 for DeformDETR
+            ffn_cfg=dict(
+                embed_dims=256,
+                feedforward_channels=2048,  # 1024 for DeformDETR
+                ffn_drop=0.0,
+            ),
+        ),  # 0.1 for DeformDETR
+        post_norm_cfg=None,
+    ),
+    positional_encoding=dict(
+        num_feats=128, normalize=True, offset=0.0, temperature=20  # -0.5 for DeformDETR
+    ),  # 10000 for DeformDETR
+    bbox_head=dict(
+        type="DsDETRHeadWithNMS",
+        num_classes=1,
+        sync_cls_avg_factor=True,
+        loss_cls=dict(
+            type="FocalLoss", use_sigmoid=True, gamma=2.0, alpha=0.25, loss_weight=1.0
+        ),  # 2.0 in DeformDETR
+        loss_bbox=dict(type="L1Loss", loss_weight=5.0),
+        loss_iou=dict(type="GIoULoss", loss_weight=2.0),
+        loss_rank=dict(type='RankLoss', loss_weight=1),
+    ),
+    dn_cfg=dict(  # TODO: Move to model.train_cfg ?
+        label_noise_scale=0.5,
+        box_noise_scale=1.0,  # 0.4 for DN-DETR
+        group_cfg=dict(dynamic=True, num_groups=None, num_dn_queries=100),
+    ),  # TODO: half num_dn_queries
+    dqs_cfg=dict(type='nms', iou_threshold=0.8),
+    # training and testing settings
+    train_cfg=dict(
+        assigner=dict(
+            type="HungarianAssigner",
+            match_costs=[
+                dict(type="FocalLossCost", weight=2.0),
+                dict(type="BBoxL1Cost", weight=5.0, box_format="xywh"),
+                dict(type="IoUCost", iou_mode="giou", weight=2.0),
+            ],
+        ),
+    ),
+    test_cfg=dict(max_per_img=300),
+)  # 100 for DeformDETR
+
+
+work_dir = "../logs/ds_dino_ae4sr50_8xb2-200e_ln"
