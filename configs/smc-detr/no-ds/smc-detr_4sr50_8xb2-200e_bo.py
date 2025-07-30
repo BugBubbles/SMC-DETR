@@ -10,7 +10,7 @@ custom_imports = dict(
     ])
 
 model = dict(
-    type="DINOWithNMSAlignWithKV",
+    type="SMC_DETR",
     num_queries=900,  # num_matching_queries
     with_box_refine=True,
     as_two_stage=True,
@@ -84,7 +84,7 @@ model = dict(
         ),  # 2.0 in DeformDETR
         loss_bbox=dict(type="L1Loss", loss_weight=5.0),
         loss_iou=dict(type="GIoULoss", loss_weight=2.0),
-        loss_rank=dict(type='RankLoss', loss_weight=1.0),
+        loss_rank=dict(type='RankLoss', loss_weight=1.0, delta=0.3),
     ),
     dn_cfg=dict(  # TODO: Move to model.train_cfg ?
         label_noise_scale=0.5,
@@ -106,4 +106,4 @@ model = dict(
 )  # 100 for DeformDETR
 
 
-work_dir = "./bo_logs/smc-detr_4sr50_8xb2-30e"
+work_dir = "./bo_logs/smc-detr_4sr50_8xb2_0.3"
