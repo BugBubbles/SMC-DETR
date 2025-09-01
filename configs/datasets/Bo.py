@@ -121,14 +121,14 @@ val_pipeline = test_pipeline
 metainfo = dict(
     classes=('crater')
     )
-data_root = '/home/temp/CraterDetect/CraterDetect/'
+data_root = '/home/temp/CraterDetect/'
 dataset_type = 'CocoDataset'
 val_dataloader = dict(
     batch_size=4,
     dataset=dict(
         ann_file='annotations/Bo/val.json',
         backend_args=None,
-        data_prefix=dict(img='Bo/'),
+        data_prefix=dict(img='ChangE/'),
         data_root=data_root,
         metainfo=metainfo,
         pipeline=val_pipeline,

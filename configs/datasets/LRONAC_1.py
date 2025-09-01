@@ -121,7 +121,7 @@ val_pipeline = test_pipeline
 metainfo = dict(
     classes=('crater')
     )
-data_root = '/home/temp/CraterDetect/CraterDetect/'
+data_root = '/home/temp/CraterDetect/'
 dataset_type = 'CocoDataset'
 val_dataloader = dict(
     batch_size=4,

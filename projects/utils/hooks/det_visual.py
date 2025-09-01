@@ -29,7 +29,7 @@ class DetLocalVisualizer2(DetLocalVisualizer):
         # TODO: Supported in mmengine's Viusalizer.
         out_file: Optional[str] = None,
         pred_score_thr: float = 0.05,
-        iou_threshold: float = 0.8,
+        iou_threshold: float = 0.3,
         step: int = 0,
     ) -> None:
         """Draw datasample and save to all backends.
@@ -94,9 +94,7 @@ class DetLocalVisualizer2(DetLocalVisualizer):
                     # 不绘制gt_in_pred，为剩下的三种情况绘制对应的检测框，使用不同的颜色
                     drawn_img = self._draw_craters(image, gt_in_pred, (255, 0, 0))
                     drawn_img = self._draw_craters(drawn_img, gt_out_pred, (0, 255, 0))
-                    # drawn_img = self._draw_craters(
-                    #     drawn_img, pred_out_gt, (247, 253, 3)
-                    # )
+                    drawn_img = self._draw_craters(drawn_img, pred_out_gt, (0, 160, 160))
 
         # It is convenient for users to obtain the drawn image.
         # For example, the user wants to obtain the drawn image and
